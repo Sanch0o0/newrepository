@@ -1,0 +1,25 @@
+{
+    "folders": [
+		{
+			"path": "C:/Users/123/Desktop/hw-1-operators-statements"
+		},
+		{
+			"path": "hw-2-functions"
+		},
+		{
+			"path": "hw-3-data-transformation"
+		},
+		{
+			"path": "../html-css"
+		},
+		{
+			"path": "hw-4-game"
+		},
+		{
+			"path": "hw5-dom-table"
+		}
+	],
+    "settings": {
+        "liveServer.settings.multiRootWorkspaceName": "html-css"
+    }
+}
