@@ -431,3 +431,12 @@ body {
     left: -140px;
     z-index: 3;
 }
+
+.border {
+    margin-top: 400px;
+    width: 80%;
+    height: 500px;
+    margin: auto;
+    border-top: 5px solid black;
+    display: flex;
+}
