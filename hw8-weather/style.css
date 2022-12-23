@@ -1,0 +1,107 @@
+* {
+    margin: 0;
+}
+
+.form {
+    width: 100vw;
+    padding: 10px;
+    background-color: #48484a;
+    display: flex;
+    justify-content: center;
+}
+
+#search-input {
+    width: 40%;
+    border-radius: 0;
+}
+
+#search-button {
+    border-radius: 0;
+}
+
+.currentButton {
+    background-color: blue;
+}
+
+.day-weather {
+    display: none;
+}
+
+.weather-day-box {
+    width: 60%;
+    position: relative;
+}
+
+.weather-box {
+    display: flex;
+    justify-content: space-between;
+    width: 50%;
+    margin: 30px auto;
+}
+
+.day-weather-data {
+    display: block;
+}
+
+.button-box {
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+.button-box>* {
+    border-right: 1px solid rgba(0, 0, 0, 0.4);
+}
+
+.day-button {
+    height: 40px;
+    display: grid;
+    align-items: center;
+    grid-template-columns: repeat(3, 1fr);
+    justify-content: space-between;
+    border: none;
+}
+
+.common-box {
+    width: 100%;
+    border-left: 2px solid rgb(0, 0, 0);
+    padding-left: 5px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    position: absolute;
+    bottom: 0;
+}
+
+.common-box>* {
+    margin-right: 15px;
+}
+
+.daily-forecast-box {
+    width: 50%;
+    height: auto;
+    margin: 20px auto;
+}
+
+.daily-forecast {
+    width: auto;
+    margin: auto;
+    display: flex;
+    justify-content: center;
+}
+
+.daily-forecast-element {
+    width: 15%;
+    display: flex;
+    flex-direction: column;
+}
+
+.display {
+    display: block;
+}
+
+.hidden {
+    display: none;
+}

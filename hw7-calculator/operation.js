@@ -20,6 +20,7 @@ const getPercent = (a) => {
 };
 
 const showResult = (res) => {
+    inputValue = res;
     calcInput.value = res;
     displayCalculateElement.textContent = res;
 }

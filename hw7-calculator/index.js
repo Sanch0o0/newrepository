@@ -6,20 +6,22 @@ let displayCalculateElement = document.querySelector('.displayBox');
 inputForm.addEventListener('input', replaceInput)
 pressButton.addEventListener('click', calculateButton)
 
-let inputValue = 0;
+let inputValue = '';
 let firstOperand = '';
 let secondOperand = '';
 
 function replaceInput(event) {
     event.preventDefault();
 
-    inputValue = event.target.value;
+    let last = event.target.value.length - 1;
 
-    if (inputValue.includes('..') && event.data === '.') {
-        event.target.value = event.target.value.replace(/[^\d]/g, '');
-        return;
+    if (event.target.value.slice(0, last).includes('.') && event.target.value[last] === '.') {
+        event.target.value = event.target.value.slice(0, last);
     }
+
     event.target.value = event.target.value.replace(/[^\d.]/g, '');
+
+    inputValue = event.target.value;
 
     highlightButtons(event.data);
 }
@@ -52,6 +54,7 @@ let result;
 let firstOperation;
 
 function doOperation(operation) {
+    if (!inputValue) return;
 
     (firstOperand === '') ? firstOperand = inputValue: secondOperand = inputValue;
     showDisplayBox(operation);
@@ -61,7 +64,7 @@ function doOperation(operation) {
 
     if (operation === 'changeSign') return changeSign();
 
-    if (firstOperation === undefined) firstOperation = String(operation);
+    if (firstOperation === undefined) firstOperation = operation;
 
     if (operation === 'getPercent') {
         firstOperand = getPercent(firstOperand)
@@ -73,6 +76,8 @@ function doOperation(operation) {
     if (firstOperand !== '' && secondOperand !== '') {
         firstOperation = eval(firstOperation);
         firstOperand = firstOperation(+firstOperand, +secondOperand);
+        displayCalculateElement.textContent = firstOperand;
+        secondOperand = '';
         firstOperation = operation;
     }
 
@@ -80,7 +85,6 @@ function doOperation(operation) {
         if (!Number.isInteger(firstOperand)) firstOperand = firstOperand.toFixed(3);
         showResult(firstOperand);
         firstOperation = undefined;
-        return;
     }
 
 }
@@ -88,7 +92,7 @@ function doOperation(operation) {
 function changeSign() {
     calcInput.value = -firstOperand;
     firstOperand = -firstOperand;
-    firstOperation = undefined;
+    inputValue = -firstOperand;
 }
 
 function deleteAll() {
@@ -96,6 +100,7 @@ function deleteAll() {
     secondOperand = '';
     firstOperation = undefined;
     calcInput.value = '';
+    inputValue = '';
     displayCalculateElement.textContent = '';
 }
 
