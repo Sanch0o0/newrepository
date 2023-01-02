@@ -1,4 +1,6 @@
 import { EventEmitter } from "./helpers/EventEmitter.js";
+import { weatherIcon } from "../data/weather-icon.js";
+import { getAvarageTemp } from "./helpers/commonHelper.js";
 
 export class View extends EventEmitter {
     constructor(dayWeatherBilder) {
@@ -6,21 +8,24 @@ export class View extends EventEmitter {
 
         this.dayWeatherBilder = dayWeatherBilder;
         this.city = localStorage.getItem('city') || null;
-        this.all = null;
+        this.focus = false;
 
         this.form = document.querySelector('.form');
         this.formInput = document.getElementById('search-input');
+        this.searchHistoryContainer = document.querySelector('.search-history');
         this.weatherDayBox = document.querySelector('.weather-day-box');
         this.buttonDay = document.querySelector('.button-box');
-        this.dailForecastBox = document.querySelector('.daily-forecast-box');
+        this.dailyForecastBox = document.querySelector('.daily-forecast-box');
+        this.scrollButton = document.querySelectorAll('.scrollButton');
+        this.addCityButton = document.querySelector('.add-city-button');
 
         this.formInput.addEventListener('focus', this.focusInput.bind(this))
+        this.formInput.addEventListener('blur', this.focusInput.bind(this))
         this.form.addEventListener('submit', this.searchWeatherByCity.bind(this));
+        this.dailyForecastBox.addEventListener('scroll', this.scrollDailyWeatherBox.bind(this));
+        this.addCityButton.addEventListener('click', this.clickAddCityBut.bind(this))
 
-    }
-
-    focusInput() {
-        console.log(11)
+        this.selectHistoryElem = this.selectHistoryElem.bind(this);
     }
 
     searchWeatherByCity(event) {
@@ -28,6 +33,7 @@ export class View extends EventEmitter {
 
         this.city = this.formInput.value;
         this.formInput.value = '';
+        this.formInput.blur();
         localStorage.city = this.city;
 
         if (this.city.trim() === '') {
@@ -37,71 +43,99 @@ export class View extends EventEmitter {
         this.emit('search', this.city);
     }
 
+    bodyHolder() {
+        const placeHolderElem = this.dayWeatherBilder.createPlaceHolder();
+        document.querySelector('body').append(placeHolderElem);
+    }
+
     renderDayWeather(day, data) {
         let dayWeatherBox = null;
         let button = null;
         let dailyForecast = null;
         let dailyForecastItem = null;
+
         this.weatherDayBox.replaceChildren();
         this.buttonDay.replaceChildren();
-        this.dailForecastBox.replaceChildren();
+        this.dailyForecastBox.replaceChildren();
 
         for (let i = 0; i < day.length; i++) {
             dailyForecast = this.dayWeatherBilder.createForecastListItem(i, day[i]);
             data[day[i]].forEach(element => {
-                dayWeatherBox = this.createWeatherBox(i, day[i], element);
-
-                button = this.createButton(i, day[i], element)
-
-                dailyForecastItem = this.createDailyForecast(i, day[i], element);
+                dailyForecastItem = this.dayWeatherBilder.createForecastElement(i, day, element);
 
                 dailyForecast.append(dailyForecastItem)
             });
-
+            dayWeatherBox = this.createWeatherBox(i, day[i], data[day[i]][0]);
+            button = this.createButton(i, day[i], data[day[i]][0]);
             this.weatherDayBox.append(dayWeatherBox);
             this.buttonDay.append(button);
-            this.dailForecastBox.append(dailyForecast);
+            this.dailyForecastBox.append(dailyForecast);
         }
     }
 
-    showDayWeather(event) {
-        event.stopImmediatePropagation();
+    createWeatherBox(index, day, element) {
+        const dtTxt = this.dayWeatherBilder.createCurrentDate(index, day, element);
+        const cityItem = this.dayWeatherBilder.createSpanItem(day, this.city, ['cityName']);
+        const avarageTemp = this.dayWeatherBilder.createDayWeather(index, day, element, ['avarage-temp']);
+        const commonDescription = this.dayWeatherBilder.createSpanItem(day, `Feels like ${getAvarageTemp(day,'averageFeels')} °C. ${element.weather[0].main}`, ['common-desc']);
+        const weatherIconItem = this.dayWeatherBilder.createWeatherIcon((weatherIcon[`${element.weather[0].description}`]), day)
+        const commonBox = this.dayWeatherBilder.createCommonBox(index, day, element);
 
-        let id = event.target.getAttribute('id');
+        return this.dayWeatherBilder.createWeatherList(index, day, [dtTxt, cityItem, weatherIconItem, avarageTemp, commonDescription, commonBox], element);
+    }
+
+    createButton(index, day, element) {
+        const weatherImg = this.dayWeatherBilder.createWeatherImg('hello', weatherIcon[`${element.weather[0].description}`], day);
+        const leftDescriptionContainer = this.dayWeatherBilder.createLeftDescContainer(index, day, element);
+
+        return this.dayWeatherBilder.createDayButton(index, day, [{ event: 'click', handler: this.showDayWeather.bind(this) }], [weatherImg, leftDescriptionContainer]);
+    }
+
+    showDayWeather(event) {
+        const id = event.target.getAttribute('id');
 
         this.emit('show', id);
     }
 
-    createWeatherBox(index, day, element) {
-        console.log(element)
-        const dtTxt = this.dayWeatherBilder.createCurrentDate(index, day, element);
-        const cityItem = this.dayWeatherBilder.createSpanItem(day, this.city);
-        const avarageTemp = this.dayWeatherBilder.createDayWeather(index, day, element);
-        const commonDescription = this.dayWeatherBilder.createSpanItem(day, `Feels like ${element.main.feels_like} °C. ${element.weather[0].main}`);
+    scrollDailyWeatherBox() {
+        let boxWidth = this.dailyForecastBox.offsetWidth;
+        let scrollPosition = this.dailyForecastBox.scrollLeft;
+        let scrollWidth = this.dailyForecastBox.scrollWidth;
 
-        const pressure = this.dayWeatherBilder.createSpanItem(day, 'Pressure ' + element.main.pressure);
-        const himidity = this.dayWeatherBilder.createSpanItem(day, 'Himidity ' + element.main.humidity + ' %');
-        const visibility = this.dayWeatherBilder.createSpanItem(day, 'Visibility ' + element.visibility + ' km');
-        const speed = this.dayWeatherBilder.createSpanItem(day, 'Speed ' + element.wind.speed + ' m/s');
-        const commonBox = this.dayWeatherBilder.createCommonBox(index, day, [pressure, himidity, visibility, speed]);
-
-        return this.dayWeatherBilder.createListItem(index, day, [dtTxt, cityItem, avarageTemp, commonDescription, commonBox]);
+        this.emit('scroll', [boxWidth, scrollWidth, scrollPosition]);
     }
 
-
-    createButton(index, day, element) {
-        const dayItem = this.dayWeatherBilder.createSpanItem(day, 'Dec ' + day);
-        const minMaxTemp = this.dayWeatherBilder.createSpanItem(day, ` ${Math.round(element.main.temp_min)} / ${Math.round(element.main.temp_max)} °C`);
-        const description = this.dayWeatherBilder.createSpanItem(day, ` ${element.weather[0].description}`);
-
-        return this.dayWeatherBilder.createDayButton(index, day, [{ event: 'click', handler: this.showDayWeather.bind(this) }], [dayItem, minMaxTemp, description]);
+    focusInput() {
+        if (!this.focus) {
+            this.emit('on-focus', true);
+            this.focus = true;
+        } else {
+            this.emit('on-focus', false);
+            this.focus = false;
+        }
     }
 
-    createDailyForecast(index, day, element) {
-        const description = this.dayWeatherBilder.createSpanItem(day, element.weather[0].description);
-        const minTemp = this.dayWeatherBilder.createSpanItem(day, Math.round(element.main.temp_min) + ' °C');
-        const dayHours = this.dayWeatherBilder.createSpanItem(day, new Date(element.dt_txt).getHours() || 24);
+    addToSearchList([add, cityName]) {
+        if (add) {
+            const id = Math.random().toFixed(3) * 1000;
+            const newHistoryItem = this.dayWeatherBilder.createHistoryItem(id, cityName, [{ event: 'click', handler: this.selectHistoryElem }]);
+            const deleteHistoryItem = this.dayWeatherBilder.createDeleteButton(id, [{ event: 'click', handler: this.deleteHistoryElem.bind(this) }])
+            newHistoryItem.append(deleteHistoryItem)
+            this.searchHistoryContainer.append(newHistoryItem);
+        }
+    }
 
-        return this.dayWeatherBilder.createForecastElement(index, day, [minTemp, description, dayHours])
+    selectHistoryElem(event) {
+        this.formInput.value = event.target.textContent;
+    }
+
+    deleteHistoryElem(event) {
+        event.stopImmediatePropagation();
+
+        this.emit('delete', event.target.parentNode)
+    }
+
+    clickAddCityBut() {
+        this.formInput.focus()
     }
 }
